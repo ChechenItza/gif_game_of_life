@@ -11,7 +11,9 @@ It generates gifs.
 1.3. Generations count    
 
 ##Requirements
-ImageMagick, Unix-based operating system and lots of RAM (for Magick++ `Image`s)
+* ImageMagick  
+* Unix-based operating system  
+* Lots of RAM   
 
 ##Examples  
 Arguments: 50 50 200    
