@@ -1,5 +1,5 @@
 #ifndef UNIVERSE_H
-#define UNVERSE_H
+#define UNIVERSE_H
 #include <vector>
 
 using std::vector;
@@ -27,11 +27,13 @@ private:
 	data_array data1, data2;
 	bool flipped;
 
-	data_array& /*src_*/data();
-	data_array& dest_data();
+	data_array& data();
+	data_array& dest();
 
 	bool rangecheck(int x, int y);
 	size_t cell_offset(int x, int y);
+	int alive_neighbors(int x, int y, size_t offset);
+	bool cell_will_live(bool alive_itself, int alive_neighbors);
 };
 
 #endif //UNIVERSE_H
