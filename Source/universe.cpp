@@ -35,29 +35,16 @@ void universe::unset(int x, int y)
 void universe::next_gen()
 {
 	data_array& data = this->data();
-	data_array& dest = dest_data();
+	data_array& dest = this->dest();
 
-	size_t offset = 0; // чтобы постоянно не пересчитывать
+	size_t offset = 0; // чтобы постоянно не пересчитывать... можно сделать итератор
 	for (int y = 0; y < h; y++)
-	{
-        	for (int x = 0; x < w; x++, offset++)
+		for (int x = 0; x < w; x++, offset++)
 		{
-			assert(offset == cell_offset(x, y));
-			int nei/*ghbors*/ = 0;
-			bool lt = x > 0, rt = x + 1 < w, up = y > 0, dn = y + 1 < h;
-
-			if (lt && data[offset-1 /*x-1, y*/]) nei++;
-			if (up && data[offset-w /*x, y-1*/]) nei++;
-			if (rt && data[offset+1 /*x+1, y*/]) nei++;
-			if (dn && data[offset+w /*x, y+1*/]) nei++;
-			if (lt && up && data[offset-w-1 /*x-1, y-1*/]) nei++;
-			if (lt && dn && data[offset+w-1 /*x-1, y+1*/]) nei++;
-			if (rt && up && data[offset-w+1 /*x+1, y-1*/]) nei++;
-			if (rt && dn && data[offset+w+1 /*x+1, y+1*/]) nei++;
-
-			dest[offset] = data[offset] ? nei == 2 || nei == 3 : nei == 3;
+			bool alive = data[offset];
+			int neighbors = alive_neighbors(x, y, offset);
+			dest[offset] = cell_will_live(alive, neighbors);
 		}
-	}
 
 	assert(offset == w*h);
 	flipped = !flipped;
@@ -82,7 +69,7 @@ universe::data_array& universe::data()
 	return flipped ? data2 : data1;
 }
 
-universe::data_array& universe::dest_data()
+universe::data_array& universe::dest()
 {
 	return flipped ? data1 : data2;
 }
@@ -95,4 +82,28 @@ bool universe::rangecheck(int x, int y)
 std::size_t universe::cell_offset(int x, int y)
 {
 	return y * w + x;
+}
+
+int universe::alive_neighbors(int x, int y, size_t offset)
+{
+	assert(offset == cell_offset(x, y));
+	data_array& data = this->data();
+	bool lt = x > 0, rt = x + 1 < w, up = y > 0, dn = y + 1 < h;
+	int count = 0;
+
+	if (lt && data[offset-1 /*x-1, y*/]) count++;
+	if (up && data[offset-w /*x, y-1*/]) count++;
+	if (rt && data[offset+1 /*x+1, y*/]) count++;
+	if (dn && data[offset+w /*x, y+1*/]) count++;
+	if (lt && up && data[offset-w-1 /*x-1, y-1*/]) count++;
+	if (lt && dn && data[offset+w-1 /*x-1, y+1*/]) count++;
+	if (rt && up && data[offset-w+1 /*x+1, y-1*/]) count++;
+	if (rt && dn && data[offset+w+1 /*x+1, y+1*/]) count++;
+	return count;
+}
+
+bool universe::cell_will_live(bool alive_itself, int alive_neighbors)
+{
+	return alive_itself ? alive_neighbors == 2 || alive_neighbors == 3
+	                    : alive_neighbors == 3;
 }
