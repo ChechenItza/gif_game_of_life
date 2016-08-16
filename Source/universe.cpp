@@ -38,9 +38,9 @@ void universe::next_gen()
 	data_array& dest = dest_data();
 
 	size_t offset = 0; // чтобы постоянно не пересчитывать
-    for (int y = 0; y < h; y++)
+	for (int y = 0; y < h; y++)
 	{
-        for (int x = 0; x < w; x++, offset++)
+        	for (int x = 0; x < w; x++, offset++)
 		{
 			assert(offset == cell_offset(x, y));
 			int nei/*ghbors*/ = 0;
@@ -57,7 +57,7 @@ void universe::next_gen()
 
 			dest[offset] = data[offset] ? nei== 2 || nei== 3 : nei== 3;
 		}
-    }
+	}
 
 	assert(offset == w*h);
 	flipped = !flipped;
