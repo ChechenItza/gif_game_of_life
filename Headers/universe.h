@@ -13,18 +13,18 @@ public:
 	typedef data_array::reference cell_ref;
 
 	universe(int, int);
-    cell_ref operator()(int x, int y);
+	cell_ref operator()(int x, int y);
 	bool get(int x, int y);
 	void set(int x, int y);
 	void unset(int x, int y);
 	void set(int x, int y, bool value);
-    void next_gen();
+	void next_gen();
 	void fill_at_random();
 
 private:
-    const int w, h;
+	const int w, h;
 	// в одном из массивов — текущее поколение, в другом — следующее
-    data_array data1, data2;
+	data_array data1, data2;
 	bool flipped;
 
 	data_array& /*src_*/data();
