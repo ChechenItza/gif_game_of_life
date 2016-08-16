@@ -55,7 +55,7 @@ void universe::next_gen()
 			if (rt && up && data[offset-w+1 /*x+1, y-1*/]) nei++;
 			if (rt && dn && data[offset+w+1 /*x+1, y+1*/]) nei++;
 
-			dest[offset] = data[offset] ? nei== 2 || nei== 3 : nei== 3;
+			dest[offset] = data[offset] ? nei == 2 || nei == 3 : nei == 3;
 		}
 	}
 
