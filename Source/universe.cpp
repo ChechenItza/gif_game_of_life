@@ -1,119 +1,98 @@
 #include "universe.h"
 #include "rand.h"
+#include <assert.h>
 
-Universe::Universe(int width, int height) :
-    _WIDTH{width},
-    _HEIGHT{height}
+universe::universe(int width, int height) :
+    w(width), h(height), data1(w*h, false), data2(data1), flipped(false)
 {
-    //initialize grid
-    _grid = new bool*[_HEIGHT];
-    for (int i = 0; i < _HEIGHT; i++) {
-        _grid[i] = new bool[_WIDTH];
-        for (int x = 0; x < rnd::randomize(_WIDTH / 2); x++) {
-            _grid[i][rnd::randomize(_WIDTH)] = 1;
-        }
-    }
 }
 
-bool* Universe::operator[](int y)
+universe::cell_ref universe::operator()(int x, int y)
 {
-    return _grid[y];
+	return data()[cell_offset(x, y)];
 }
 
-void Universe::nextGen()
+bool universe::get(int x, int y)
 {
-//Create new generation
-    for (int y = 0; y < _HEIGHT; y++) {
-        for (int x = 0; x < _WIDTH; x++) {
-        //Count neighbour alive cells {{{
-            int alive_cells = 0;
-            //top-left corner cell
-            if (y == 0 && x == 0) {
-                alive_cells += _grid[y+1][x];
-                alive_cells += _grid[y][x+1];
-                alive_cells += _grid[y+1][x+1];
-            //bottom-left corner cell
-            } else if (y == _HEIGHT - 1 && x == 0) {
-                alive_cells += _grid[y-1][x];
-                alive_cells += _grid[y][x+1];
-                alive_cells += _grid[y-1][x+1];
-            //top-right corner cell
-            } else if (y == 0 && x == _WIDTH - 1) {
-                alive_cells += _grid[y][x-1];
-                alive_cells += _grid[y+1][x-1];
-                alive_cells += _grid[y+1][x];
-            //bottom-right corner cell
-            } else if (y == _HEIGHT - 1 && x == _WIDTH - 1) {
-                alive_cells += _grid[y][x-1];
-                alive_cells += _grid[y-1][x-1];
-                alive_cells += _grid[y-1][x];
-            //wrap left line cells
-            } else if (x == 0) {
-                alive_cells += _grid[y+1][_WIDTH-1];
-                alive_cells += _grid[y-1][_WIDTH-1];
-                alive_cells += _grid[y][_WIDTH-1];
+	return rangecheck(x, y) ? (*this)(x, y) : false;
+}
 
-                alive_cells += _grid[y+1][x];
-                alive_cells += _grid[y-1][x];
-                alive_cells += _grid[y][x+1];
-                alive_cells += _grid[y+1][x+1];
-                alive_cells += _grid[y-1][x+1];
-            //wrap top line cells
-            } else if (y == 0) {
-                alive_cells += _grid[_HEIGHT-1][x-1];
-                alive_cells += _grid[_HEIGHT-1][x];
-                alive_cells += _grid[_HEIGHT-1][x+1];
+void universe::set(int x, int y)
+{
+	set(x, y, true);
+}
 
-                alive_cells += _grid[y][x-1];
-                alive_cells += _grid[y][x+1];
-                alive_cells += _grid[y+1][x];
-                alive_cells += _grid[y+1][x-1];
-                alive_cells += _grid[y+1][x+1];
-            //wrap right line cells
-            } else if (x == _WIDTH - 1) {
-                alive_cells += _grid[y+1][0];
-                alive_cells += _grid[y-1][0];
-                alive_cells += _grid[y][0];
+void universe::set(int x, int y, bool value)
+{
+	if (rangecheck(x, y)) (*this)(x, y) = value;
+}
 
-                alive_cells += _grid[y+1][x];
-                alive_cells += _grid[y-1][x];
-                alive_cells += _grid[y][x-1];
-                alive_cells += _grid[y+1][x-1];
-                alive_cells += _grid[y-1][x-1];
-            //wrap bottom line cells
-            } else if (y == _HEIGHT - 1) {
-                alive_cells += _grid[0][x-1];
-                alive_cells += _grid[0][x];
-                alive_cells += _grid[0][x+1];
+void universe::unset(int x, int y)
+{
+	set(x, y, false);
+}
 
-                alive_cells += _grid[y][x-1];
-                alive_cells += _grid[y][x+1];
-                alive_cells += _grid[y][x];
-                alive_cells += _grid[y-1][x-1];
-                alive_cells += _grid[y-1][x+1];
-            //center cells
-            } else {
-                alive_cells += _grid[y][x-1];
-                alive_cells += _grid[y-1][x-1];
-                alive_cells += _grid[y+1][x-1];
-                alive_cells += _grid[y+1][x];
-                alive_cells += _grid[y-1][x];
-                alive_cells += _grid[y][x+1];
-                alive_cells += _grid[y+1][x+1];
-                alive_cells += _grid[y-1][x+1];
-            }
-        //}}}
+void universe::next_gen()
+{
+	data_array& data = this->data();
+	data_array& dest = dest_data();
 
+	size_t offset = 0; // чтобы постоянно не пересчитывать
+	for (int y = 0; y < h; y++)
+	{
+        	for (int x = 0; x < w; x++, offset++)
+		{
+			assert(offset == cell_offset(x, y));
+			int nei/*ghbors*/ = 0;
+			bool lt = x > 0, rt = x + 1 < w, up = y > 0, dn = y + 1 < h;
 
-        //Apply the rules
-            if (!_grid[y][x] && alive_cells == 3)
-                _grid[y][x] = true;
-            else if (_grid[y][x] && alive_cells > 3)
-                _grid[y][x] = false;
-            else if (_grid[y][x] && alive_cells >= 2)
-                _grid[y][x] = true;
-            else if (_grid[y][x] && alive_cells < 2)
-                _grid[y][x] = false;
-        }
-    }
+			if (lt && data[offset-1 /*x-1, y*/]) nei++;
+			if (up && data[offset-w /*x, y-1*/]) nei++;
+			if (rt && data[offset+1 /*x+1, y*/]) nei++;
+			if (dn && data[offset+w /*x, y+1*/]) nei++;
+			if (lt && up && data[offset-w-1 /*x-1, y-1*/]) nei++;
+			if (lt && dn && data[offset+w-1 /*x-1, y+1*/]) nei++;
+			if (rt && up && data[offset-w+1 /*x+1, y-1*/]) nei++;
+			if (rt && dn && data[offset+w+1 /*x+1, y+1*/]) nei++;
+
+			dest[offset] = data[offset] ? nei == 2 || nei == 3 : nei == 3;
+		}
+	}
+
+	assert(offset == w*h);
+	flipped = !flipped;
+}
+
+void universe::fill_at_random()
+{
+	data_array& data = this->data();
+	std::fill(data.begin(), data.end(), false);
+
+	for (int y = 0; y < h; y++)
+	{
+		int n = rnd::randomize(w / 2);
+
+		for (int i = 0; i < n; i++)
+			set(rnd::randomize(w), y);
+	}
+}
+
+universe::data_array& universe::data()
+{
+	return flipped ? data2 : data1;
+}
+
+universe::data_array& universe::dest_data()
+{
+	return flipped ? data1 : data2;
+}
+
+bool universe::rangecheck(int x, int y)
+{
+	return x >= 0 && y >= 0 && x < w && y < h;
+}
+
+std::size_t universe::cell_offset(int x, int y)
+{
+	return y * w + x;
 }
