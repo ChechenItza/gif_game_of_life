@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "universe.h"
 #include "rand.h"
 #include <assert.h>
