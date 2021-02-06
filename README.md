@@ -18,7 +18,7 @@ It generates gifs.
 ##Examples  
 Arguments: 50 50 200    
 RAM used: ~1.5 GB  
-![Example](https://github.com/7Y3RPXK3ETDCNRDD/gif_game_of_life/blob/master/Output/hey.gif)
+![Example](https://github.com/ChechenItza/gif_game_of_life/blob/master/Output/hey.gif)
 
 
 
