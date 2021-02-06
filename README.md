@@ -6,8 +6,8 @@ It generates gifs.
 `git clone https://github.com/7Y3RPXK3ETDCNRDD/gif_game_of_life.git`
 2. Run `make`.
 3. Run the executable and pass the following arguments to it:  
-1.1. World width  (in cells)
-1.2. World height  (in cells)
+1.1. World width (in cells)  
+1.2. World height (in cells)  
 1.3. Generations count    
 
 ## Requirements
